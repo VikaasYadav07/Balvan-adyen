@@ -1,0 +1,3 @@
+runtime: nodejs16 # specify your Node.js version here
+env: standard
+instance_class: F1 # Choose an instance class according to your needs

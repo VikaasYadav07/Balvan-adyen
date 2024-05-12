@@ -1,0 +1,27 @@
+{{!-- Hidden divs with data passed from the Express server --}}
+<div id="clientKey" class="hidden">{{ clientKey }}</div>
+<div id="type" class="hidden">{{ type }}</div>
+<div id="amount" class="hidden">{{ amount }}</div>
+<div id="userid" class="hidden">{{ userid }}</div>
+<div id="currency" class="hidden">{{ currency }}</div>
+<div id="language" class="hidden">{{ language }}</div>
+<div id="paymentType" class="hidden">{{ paymentType }}</div>
+<div id="checkoutid" class="hidden">{{ checkoutid }}</div>
+<div id="loader" style="display: none; position: fixed; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1000;">
+    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 20px;">
+        Loading...
+    </div>
+</div>
+
+<div id="payment-page">
+  <div class="container">
+    {{!-- The Checkout integration type will be rendered below. --}}
+    {{!--  Drop-in includes styling out-of-the-box, so no additional styling is needed. --}}
+    <div class="payment-container">
+      <div id={{type}} class="payment"></div>
+    </div>
+  </div>
+</div>
+
+{{!-- Adyen Component client code --}}
+<script type="text/javascript" src="../adyenImplementation.js"></script>
