@@ -22,7 +22,7 @@ async function startCheckout() {
   showLoader(); 
   try {
   console.log("amount",amount);
-    const checkoutSessionResponse = await callServer("/api/sessions?type=" + type,{"key1":userid,"key2":amount,"currency":currency,"checkout_id":checkoutid,"paymentType":paymenttype});
+    const checkoutSessionResponse = await callServer("/api/sessions?type=" + type,{"key1":userid,"key2":amount,"currency":"USD","checkout_id":checkoutid,"paymentType":paymenttype});
     const checkout = await createAdyenCheckout(checkoutSessionResponse, paymentAmount, currency,userid,language);
     checkout.create(type).mount(document.getElementById(type));
     hideLoader(); 
