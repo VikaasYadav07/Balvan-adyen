@@ -51,7 +51,7 @@ app.use(express.static(path.join(__dirname, "/public")));
 // parsing the .env file and assigning it to process.env
 dotenv.config({
   path: "./.env",
-}); 1234
+});
 
 // Adyen Node.js API library boilerplate (configuration, etc.)
 const config = new Config();
@@ -71,7 +71,7 @@ app.engine(
 
 app.set("view engine", "handlebars");
 /*function fetchPublicIP() {123456
-  
+
   return new Promise((resolve, reject) => {
     https.get('https://api.ipify.org?format=json', (resp) => {
       let data = '';
@@ -165,7 +165,8 @@ app.post("/api/sessions", async (req, res) => {
 
     const response = await checkout.PaymentsApi.sessions({
       amount: {
-        currency: req.body.currency, value: req.body.key2 * 100,
+        currency: req.body.currency,
+         value: req.body.key2 * 100,
       }, // value is 100€ in minor units
       countryCode: "NL",
       merchantAccount: process.env.ADYEN_MERCHANT_ACCOUNT, // required
@@ -194,12 +195,10 @@ app.post("/api/sessions", async (req, res) => {
 app.use(cookieParser());
 
 // Checkout page (make a payment)
-app.get('/', async (req, res) => {
+/*app.get('/', async (req, res) => {
+  const userID = req.query.userid;
 
-
-  userID = req.query.userid;
-
-
+  // Validate the user ID
   if (typeof userID !== 'string' || userID.trim() === '') {
     return res.status(400).send('User ID must be a non-empty string.');
   }
@@ -207,34 +206,79 @@ app.get('/', async (req, res) => {
   console.log(`UserID: ${userID}`);
 
   try {
-    // Assuming user_id is stored in a collection 'users'
     const userDoc = await db.collection('users').doc(userID).get();
-    if (userDoc.exists) {
-      console.log("Successfully retrieved user document.");
-      let decimalAmount = parseFloat(req.query.amount);
-      let integerAmount = Math.round(decimalAmount * 1);
 
-      // ... proceed with your logic
-      res.render("checkout", {
-        type: "card",
-        amount: integerAmount,
-        userid: req.query.userid,
-        language: req.query.language,
-        checkoutid: req.query.checkoutid,
-        currency: req.query.currency,
-        paymentType: req.query.paymentType,
-        clientKey: process.env.ADYEN_CLIENT_KEY
-      });
-
-    } else {
-      res.status(404).send('User ID does not exist in the database.');
+    if (!userDoc.exists) {
+      return res.status(404).send('User ID does not exist in the database.');
     }
-    const checkdat = await db.collection('users').doc(userID).collection('checkout').get().then((querySnapshot) => {
-      querySnapshot.forEach((doc) => {
-        console.log(`${doc.id} => ${doc.data()}`);
-      });
+
+    console.log("Successfully retrieved user document.");
+
+    // Retrieve the amount and parse it as an integer
+    const decimalAmount = parseFloat(req.query.amount);
+    const integerAmount = Math.round(decimalAmount);
+
+    res.render("checkout", {
+      type: "card",
+      amount: 3000,
+      userid: userID,
+      language: "EN",
+      checkoutid: req.query.checkoutid,
+      currency: "USD",
+      paymentType: req.query.paymentType,
+      clientKey: process.env.ADYEN_CLIENT_KEY
     });
 
+    // Log additional checkout data
+    const checkoutData = await db.collection('users').doc(userID).collection('checkout').get();
+    checkoutData.forEach(doc => {
+      console.log(`${doc.id} => ${JSON.stringify(doc.data())}`);
+    });
+
+  } catch (error) {
+    console.error('Error retrieving user document: ', error);
+    res.status(500).send('Error verifying user ID: ' + error.message);
+  }
+});*/
+app.get('/', async (req, res) => {
+  const userID = req.query.userid;
+  const checkoutID = req.query.checkoutid;
+
+  // Validate the user ID
+  if (typeof userID !== 'string' || userID.trim() === '') {
+    return res.status(400).send('User ID must be a non-empty string.');
+  }
+
+  console.log(`UserID: ${userID}`);
+
+  try {
+    const userDoc = await db.collection('users').doc(userID).get();
+
+    if (!userDoc.exists) {
+      return res.status(404).send('User ID does not exist in the database.');
+    }
+
+    console.log("Successfully retrieved user document.");
+
+    // Retrieve checkout data
+    const checkoutDoc = await db.collection('users').doc(userID).collection('checkout').doc(checkoutID).get();
+
+    if (!checkoutDoc.exists) {
+      return res.status(404).send('Checkout data does not exist for this user.');
+    }
+
+    const checkoutData = checkoutDoc.data();
+
+    res.render("checkout", {
+      type: "card",
+      amount: checkoutData.total_amount,
+      userid: userID,
+      language: checkoutData.language,
+      checkoutid: checkoutID,
+      currency: checkoutData.currency,
+      paymentType: (checkoutData.issubscriptions==true)?"subscription":"OneTime",
+      clientKey: process.env.ADYEN_CLIENT_KEY
+    });
 
   } catch (error) {
     console.error('Error retrieving user document: ', error);
@@ -298,50 +342,46 @@ app.post("/api/tokenization/sessions", async (req, res) => {
 
 });
 app.get("/subscription", async (req, res) => {
-  userID = req.query.userid;
-
-  console.log(`subscription: ${JSON.stringify(req.query)}`);
-
-  // Check if userID is actually provided and is a string
   if (typeof userID !== 'string' || userID.trim() === '') {
     return res.status(400).send('User ID must be a non-empty string.');
   }
 
-  // console.log(`UserID: ${userID}`);
+  console.log(`UserID: ${userID}`);
 
   try {
-    // Assuming user_id is stored in a collection 'users'
     const userDoc = await db.collection('users').doc(userID).get();
-    console.log(userDoc.data());
 
-    if (userDoc.exists) {
-      console.log("Successfully retrieved user document.");
-      let decimalAmount = parseFloat(req.query.amount);
-      let integerAmount = Ma
-      th.round(decimalAmount * 1);
-      // ... proceed wit                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            h your logic
+    if (!userDoc.exists) {
+      return res.status(404).send('User ID does not exist in the database.');
+    }
+
+    console.log("Successfully retrieved user document.");
+
+    // Retrieve checkout data
+    const checkoutDoc = await db.collection('users').doc(userID).collection('checkout').doc(checkoutID).get();
+
+    if (!checkoutDoc.exists) {
+      return res.status(404).send('Checkout data does not exist for this user.');
+    }
+
+    const checkoutData = checkoutDoc.data();
 
       res.render("subscription", {
         type: "card",
-        amount: integerAmount,
-        userid: req.query.userid,
-        currency: req.query.currency,
-        language: req.query.language,
-        checkoutid: req.query.checkoutid,
 
-        paymentType: req.query.paymentType,
+        amount: checkoutData.total_amount,
+        userid: userID,
+        language: checkoutData.language,
+        checkoutid: checkoutID,
+        currency: checkoutData.currency,
+        paymentType: (checkoutData.issubscriptions==true)?"subscription":"OneTime",
         clientKey: process.env.ADYEN_CLIENT_KEY
       })
-
-
-    } else {
-      res.status(404).send('User ID does not exist in the database.');
+    } catch (error) {
+      console.error('Error retrieving user document: ', error);
+      res.status(500).send('Error verifying user ID: ' + error.message);
     }
-  } catch (error) {
-    console.error('Error retrieving user document: ', error);
-    res.status(500).send('Error verifying user ID: ' + error.message);
-  }
-});
+  });
 app.get("/checkout", (req, res) =>
   res.render("checkout", {
     type: req.query.type,
@@ -1136,6 +1176,7 @@ function getPort() {
 
 
 app.listen(getPort(), () => console.log(`Server started -> http://localhost:${getPort()}`));
+
 
 
 
